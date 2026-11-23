@@ -36,3 +36,15 @@ Initial iterations may include first-call overhead and should not automatically 
 1. Warm-up is necessary because initial iterations can include overhead and may not represent steady-state performance.
 2. Reporting only mean latency can hide occasional slow operations, so p50, p95 and p99 should also be reported.
 3. Repeated measurements and percentiles help evaluate both performance and consistency.
+
+## Fundamental Definitions
+
+- **Latency:** The time taken by a system to complete one operation or respond to one request.
+- **Throughput:** The number of operations or requests a system can process in a given amount of time.
+- **Warm-up:** Running a system before measurement to reduce the effect of initial overhead.
+- **Tail latency:** The latency of the slowest portion of requests, commonly described using p95 and p99.
+- **p50:** The median; 50% of operations complete within this time.
+- **p95:** 95% of operations complete within this time; the slowest 5% take longer.
+- **p99:** 99% of operations complete within this time; the slowest 1% take longer.
+
+**Why mean can hide poor user experience:** A few very slow requests can affect some users significantly even when the average latency looks acceptable.
