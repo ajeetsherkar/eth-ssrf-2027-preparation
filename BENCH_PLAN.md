@@ -2,148 +2,210 @@
 
 ## 1. Research Question
 
-How do runtime, precision, input size, batch size, and thread count affect latency, throughput, and detection accuracy of the TransitNexus detection pipeline on the available hardware?
+How do runtime, precision, input size, batch size and CPU thread
+count affect latency, throughput and detection accuracy of the
+TransitNexus pothole detection pipeline on the available hardware?
 
 ## 2. Variables Under Investigation
 
-- Runtime: PyTorch vs ONNX Runtime
-- Precision: FP32 vs lower-precision formats, where supported
-- Input size: Different image resolutions
-- Batch size: Number of frames processed together
-- Thread count: Number of CPU threads used
+- Runtime: PyTorch vs ONNX Runtime (ORT)
+- ORT graph optimisations: enabled vs disabled
+- Precision: FP32, FP16 and INT8 where supported
+- Input resolution: 320, 416 and 640
+- Batch size: 1, 4 and 8
+- CPU thread count: 1, 2, 4 and 8
 
 ## 3. Experimental Controls
 
-The following conditions will remain fixed during the baseline
-runtime comparison:
+The following conditions define the baseline experiment.
 
 | Control | Fixed setting |
 |---|---|
 | Benchmark video | data/bench_clip_fixed.mp4 |
-| Number of frames | 200 |
+| Number of source frames | 200 |
 | Video resolution | 1280 x 720 |
 | Video frame rate | 30 FPS |
 | Video duration | Approximately 6.67 seconds |
 | Detection task | Pothole detection |
 | PyTorch model | ../transitnexus-sih/models/pothole/best.pt |
 | ONNX model | ../transitnexus-sih/models/pothole/best_benchmark.onnx |
-| Inference image size | 640 x 640 |
+| Baseline inference size | 640 x 640 |
 | Baseline precision | FP32 |
 | PyTorch device | CPU |
-| ONNX execution provider | CPUExecutionProvider |
+| ORT execution provider | CPUExecutionProvider |
 | Confidence threshold | 0.25 |
 | NMS IoU threshold | 0.70 |
-| Python environment | Python 3.11.13, same virtual environment |
 | Hardware | Apple M2 MacBook Air |
+| Python environment | Same Python environment for all comparable runs |
 | Input frames | Same decoded frames for both runtimes |
+
 ### Environmental Controls
 
 - Use the same MacBook Air for all experiments.
 - Connect the laptop to power before benchmarking.
 - Close unnecessary background applications.
-- Use the same Python virtual environment.
+- Use the same Python environment and package versions.
 - Avoid changing model weights during the experiment.
 - Record software versions and hardware details.
-- Change only the variable being investigated in each experiment.
-
-The fixed settings above define the baseline. Individual experiments
-may deliberately change one variable while keeping the remaining
-settings constant.
+- Change only the variable being investigated.
+- Use identical input frames and equivalent preprocessing and
+  postprocessing for runtime comparisons.
+- Record any unsupported configuration rather than silently
+  substituting another configuration.
 
 ## 4. Evaluation Metrics
 
-The following metrics will be recorded during each experiment:
-
 | Metric | Meaning | Unit |
 |---|---|---|
-| Mean latency | Average time required to process one frame | ms/frame |
-| Median latency (p50) | Middle value of frame processing times | ms/frame |
-| p95 latency | 95th percentile of frame processing times | ms/frame |
-| p99 latency | 99th percentile of frame processing times | ms/frame |
-| Throughput | Number of frames processed per second | FPS |
-| Model loading time | Time required to load the model | seconds |
-| Peak memory usage | Maximum memory consumed during inference | MB |
-| Detection count | Total number of detected objects | count |
-| Detection consistency | Agreement between PyTorch and ONNX bounding boxes | IoU |
+| Mean latency | Average processing time per frame | ms/frame |
+| Standard deviation | Variation in frame latency | ms |
+| Median latency (p50) | Middle frame latency | ms/frame |
+| p95 latency | Latency below which 95% of observations fall | ms/frame |
+| p99 latency | Latency below which 99% of observations fall | ms/frame |
+| Throughput | Frames processed per second | frames/s |
+| Peak memory | Maximum memory used during the experiment | MB |
+| Model loading time | Time needed to load the model/runtime | seconds |
+| mAP@50 | Detection accuracy at IoU threshold 0.50 | percentage |
+| Detection consistency | Agreement between matched PyTorch and ORT boxes | IoU |
+
+### Accuracy Evaluation
+
+- Calculate mAP@50 on the labelled validation dataset using the
+  corresponding ground-truth annotations.
+- Keep the validation dataset and evaluation settings fixed.
+- Do not treat the 200-frame benchmark video as a labelled
+  validation set unless ground-truth annotations exist for it.
+- Report unavailable accuracy measurements as not evaluated.
+- Detection consistency is not a substitute for ground-truth accuracy.
+
+### Latency Measurement Scope
+
+The primary end-to-end per-frame latency timer will cover:
+
+1. Image preprocessing and input preparation.
+2. Model inference.
+3. Detection postprocessing, including confidence filtering
+   and non-maximum suppression (NMS).
+
+The timer will exclude:
+
+- Video file decoding and frame extraction.
+- Model loading and initialisation.
+- Warm-up iterations.
+- Displaying, drawing or saving annotated frames.
+
+For batch experiments, report both total batch latency and
+per-frame latency (batch latency divided by batch size).
+
+If inference-only latency is measured separately, report it
+as a separate metric and do not mix it with end-to-end latency.
+
 ### Measurement Rules
 
-- Exclude warm-up runs from measured inference latency.
+- Perform 20 warm-up iterations before timed measurements.
+- Collect at least 200 timed iterations per configuration.
+- Report mean, standard deviation, p50, p95 and p99.
+- Calculate throughput as total timed frames divided by total
+  measured processing time.
 - Measure model loading time separately.
-- Use the same frames for both runtimes.
-- Report mean, p50, p95 and p99 latency.
-- Calculate throughput using the total measured inference time.
-- Record memory usage separately from latency.
-- Use IoU >= 0.50 as the bounding-box matching threshold.
-- Do not treat detection consistency as a substitute for ground-truth accuracy evaluation.
+- Record peak memory separately from latency.
+- Use IoU >= 0.50 for bounding-box matching.
+- Preserve raw measurements for every run.
 
 ## 5. Experiment Matrix
 
-Each experiment changes one independent variable while keeping
-the other baseline settings fixed.
+Unless explicitly stated otherwise, E4-E7 use ONNX Runtime CPU,
+FP32 precision, 640 input resolution, batch size 1 and the
+baseline CPU thread setting. Each experiment changes only its
+specified independent variable while keeping the other settings fixed.
 
-| Experiment | Variable | Configurations | Purpose |
+For E4, precision configurations are compared against the FP32
+baseline. For E5, E6 and E7, the corresponding baseline setting
+is changed while all other settings remain fixed.
+
+| Experiment | Variable and configurations | Fixed settings | Runs |
 |---|---|---|---|
-| E1 | Runtime | PyTorch CPU, ONNX CPU | Compare inference performance |
-| E2 | Input size | 320, 416, 640 | Study resolution impact |
-| E3 | Batch size | 1, 4, 8 | Study batch processing impact |
-| E4 | CPU threads | 1, 2, 4, 8 | Study CPU parallelism impact |
-| E5 | Precision | FP32, FP16 where supported | Study numerical precision and speed |
+| E1 | PyTorch CPU baseline, FP32 | 640 input, batch 1, CPU, same 200 frames | 3 process launches |
+| E2 | ORT CPU, FP32 | Same model, frames, 640 input, batch 1 | 3 process launches |
+| E3 | ORT graph optimisations ON vs OFF | FP32, 640 input, batch 1, CPU provider | 3 launches per configuration |
+| E4 | Precision: FP32, FP16, INT8 where supported | Same runtime, model task, frames and input size | 1 screening launch per configuration; repeat selected configurations 3 times |
+| E5 | Resolution: 320, 416, 640 | Same runtime, precision, batch 1 and threads | 1 screening launch per configuration; repeat selected configurations 3 times |
+| E6 | Batch size: 1, 4, 8 | Same runtime, precision, resolution and threads | 1 screening launch per configuration; repeat selected configurations 3 times |
+| E7 | CPU threads: 1, 2, 4, 8 | Same runtime, precision, resolution and batch size | 1 screening launch per configuration; repeat selected configurations 3 times |
+
 ### Experiment Execution Rules
 
-- E1 is the baseline runtime comparison.
-- E2 changes only inference image size.
-- E3 changes only batch size.
-- E4 changes only CPU thread count.
-- E5 changes only numerical precision.
-- Use the same video frames for comparable experiments.
-- Use warm-up runs before collecting measurements.
-- Exclude warm-up runs from reported latency.
+- E1 is the PyTorch CPU baseline.
+- E2 compares ORT CPU against the PyTorch baseline.
+- E3 compares ORT graph optimisations enabled and disabled.
+- E4 investigates supported precision configurations.
+- E5 investigates input resolution.
+- E6 investigates batch size.
+- E7 investigates CPU thread count.
+- Use 20 warm-up iterations and at least 200 timed iterations
+  for each configuration.
+- Run each headline configuration in three separate processes.
+- Use one screening launch for exploratory configurations, then
+  repeat selected configurations in three separate processes.
+- Keep all other settings fixed when changing one variable.
 - Record unsupported configurations and their reasons.
-- Check prediction consistency when changing precision or image size.
-- Do not compare results from different hardware as if they were equivalent.
-
+- Check detection consistency and validation accuracy when
+  changing precision or resolution.
+- Do not compare results from different hardware as equivalent.
 
 ## 6. Stop Rules and Failure Conditions
 
-An experiment will be stopped or marked invalid under the following
-conditions:
+An experiment will be stopped or marked invalid under the
+following conditions:
 
 1. Stop if the model fails to load or produces invalid outputs.
-2. Stop if the benchmark video cannot provide all expected 200 frames.
-3. Stop if inference produces runtime errors or non-finite latency values.
-4. Stop if the laptop shows signs of thermal instability or system instability.
-5. Stop if memory usage becomes unsafe or the system becomes unresponsive.
-6. Repeat the experiment if unexpected background activity significantly affects measurements.
-7. Mark unsupported runtime, precision, batch-size or thread configurations as unsupported.
-8. Do not silently discard failed runs or unusual measurements.
-9. Record the reason for every stopped, repeated or invalid experiment.
-10. Do not report incomplete experiments as successful benchmark results.
+2. Stop if the benchmark video cannot provide all expected
+   200 source frames.
+3. Stop if inference produces runtime errors or non-finite
+   latency values.
+4. Stop if 20 warm-up iterations cannot be completed.
+5. Mark a run incomplete if fewer than 200 timed iterations
+   are collected.
+6. Stop if the laptop shows signs of thermal or system instability.
+7. Stop if memory usage becomes unsafe or the system becomes
+   unresponsive.
+8. Repeat a run if unexpected background activity significantly
+   affects measurements.
+9. Mark unsupported runtime, precision, batch-size or thread
+   configurations as unsupported.
+10. Do not silently discard failed runs or unusual measurements.
+11. Record the reason for every stopped, repeated or invalid run.
+12. Do not report incomplete experiments as successful results.
 
-### Result Validity
+### Result Validity and Reporting
 
-- Use repeated runs to check measurement stability.
+- Use three separate process launches for headline configurations.
+- Report each process result and the aggregate results.
 - Investigate unusually large latency variations.
 - Keep raw measurements for later analysis.
-- Report limitations and failed configurations transparently.
-
+- Report failed runs, unsupported configurations and limitations.
+- Do not remove outliers without recording and justifying the reason.
+- Do not claim accuracy improvements without validation-set
+  ground-truth evaluation.
 
 ## 7. Research Hypotheses
 
-The following hypotheses will be evaluated through controlled experiments.
-They are predictions and will be accepted or rejected based on measured results.
+The following hypotheses will be evaluated through controlled
+experiments. They are predictions and may be rejected by the results.
 
 ### H1 – Runtime Comparison
 
-PyTorch CPU and ONNX Runtime CPU will show differences in inference
-latency and throughput when processing the same frames on the same hardware.
+ONNX Runtime CPU will achieve lower median latency (p50) than
+PyTorch CPU for the same model and input frames.
 
-### H2 – Input Resolution
+### H2 – Precision and Accuracy
 
-Increasing the inference input resolution will increase inference
-latency because the model processes more image data.
+INT8 quantisation will cause a larger reduction in validation
+mAP@50 than FP16 precision compared with the FP32 baseline,
+where these precision modes are supported.
 
-### H3 – Batch Size and CPU Threads
+### H3 – Preprocessing Contribution
 
-Changing batch size and CPU thread count will affect inference
-throughput and per-frame latency.
+Image preprocessing will account for a measurable share of the
+total end-to-end detection pipeline latency.
 
