@@ -33,10 +33,13 @@
 
 ## 5. Recommendation Letter
 
-Recommendation letter required? Y / N / check
+Recommendation letter required? **N — Not required**
 
-Note: The official ETH How to Apply page does not list a recommendation letter among its required documents. Verify again in the SiROP application form before submission because other sources may differ.
+The official ETH SSRF 2027 How to Apply page does not
+include a recommendation letter in its required documents.
 
+Final check: Confirm whether SiROP explicitly requests one
+during the application process.
 ## 6. Application Details
 
 - Application platform: SiROP.
@@ -48,3 +51,4 @@ Note: The official ETH How to Apply page does not list a recommendation letter a
 ## 7. Official Source
 
 https://inf.ethz.ch/studies/summer-research-fellowship/how-to-apply.html
+
