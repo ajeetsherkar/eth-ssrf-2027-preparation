@@ -279,3 +279,171 @@ Suppose TUNA tests one configuration:
 - **95% confidence:** Chance of detecting all unstable configurations in the researchers' experiments.
 - **30%:** Unstable configuration detection threshold.
 - **Minimum aggregation:** Sends the lowest adjusted performance value to the optimizer.
+
+---
+
+## Section 6: Evaluation
+
+### 1. Evaluation objective
+
+The researchers evaluated whether TUNA can:
+- Find high-performing application configurations.
+- Reduce performance variability.
+- Select configurations that remain reliable when deployed on new systems.
+
+The selected configurations were tested on 10 new systems to evaluate their performance after tuning.
+
+### 2. Experimental setup
+
+| Component | Setup |
+|---|---|
+| Application systems | PostgreSQL, Redis and NGINX |
+| Worker nodes | 10 |
+| Orchestrator nodes | 1 |
+| Virtual machines | Azure D8s_v5 |
+| Storage | SSDv2 data disk |
+| Optimizer | SMAC |
+| Surrogate model | Random Forest |
+| Tuning duration | 8 hours |
+
+Three approaches were compared:
+1. **TUNA:** Uses distributed sampling and techniques to handle performance noise and unstable configurations.
+2. **Traditional sampling:** Evaluates configurations sequentially on a single node without repeated samples.
+3. **Default:** Uses the application's original configuration without tuning.
+
+### 3. Evaluation metrics
+
+| Metric | Meaning | Better direction |
+|---|---|---|
+| Throughput (TPS) | Transactions completed per second | Higher |
+| Runtime | Time required to complete a workload | Lower |
+| Latency | Time required to respond to a request | Lower |
+| P95 latency | 95% of requests complete within this time | Lower |
+| Standard deviation | Spread of performance measurements | Lower |
+
+### 4. Main evaluation results
+
+#### 4.1 Generalizability across workloads — Figure 11
+
+PostgreSQL was evaluated using four workloads:
+
+| Workload | TUNA result | Traditional result | Key observation |
+|---|---:|---:|---|
+| TPC-C | 1,925 TPS | 1,989 TPS | Traditional had slightly higher average throughput, but TUNA was more stable |
+| Epinions | 34,957 TPS | 32,189 TPS | TUNA achieved higher throughput |
+| TPC-H | 70.3 seconds | 94.5 seconds | TUNA reduced runtime |
+| mssales | 33.2 seconds | 62.5 seconds | TUNA substantially reduced runtime |
+
+Important observations:
+- TPC-C: TUNA's standard deviation was 69 TPS versus 205.7 TPS for traditional sampling.
+- Epinions: Some configurations selected by traditional sampling had high variability despite good training performance.
+- TPC-H: TUNA completed the analytical workload faster.
+- mssales: TUNA achieved approximately 47% lower runtime and 61.2% lower standard deviation than traditional sampling.
+
+**Learning:** TUNA generalizes across transactional and analytical workloads. It does not always achieve the highest average performance, but it often selects more stable configurations.
+
+#### 4.2 Generalizability across regions — Figure 12
+
+The PostgreSQL TPC-C experiment was repeated in a different Azure region.
+
+| Method | Throughput |
+|---|---:|
+| TUNA | 2,321 TPS |
+| Traditional | 2,239 TPS |
+
+Standard deviation:
+- TUNA: 113 TPS
+- Traditional: 267.7 TPS
+
+**Learning:** TUNA can maintain better performance consistency across different cloud regions.
+
+#### 4.3 Generalizability across hardware — Figure 13
+
+Researchers tested PostgreSQL TPC-C on bare-metal CloudLab machines instead of Azure virtual machines.
+
+| Method | Throughput |
+|---|---:|
+| TUNA | 5,756 TPS |
+| Traditional | 5,380 TPS |
+
+Traditional sampling had 7.71 times higher standard deviation.
+
+**Learning:** TUNA is not limited to one cloud platform or virtual-machine environment.
+
+#### 4.4 Generalizability across applications — Figures 14 and 15
+
+**Redis — Figure 14**
+- Workload: YCSB-C, mainly read operations.
+- Metric: P95 latency.
+- Some configurations selected through traditional sampling caused Redis crashes because of insufficient memory.
+- TUNA avoided selecting the configurations that crashed and reduced variability.
+
+**NGINX — Figure 15**
+- Workload: Serving the top 500 Wikipedia pages.
+- Metric: P95 latency.
+- TUNA achieved 42.6 ms latency versus 46.6 ms for traditional sampling.
+- TUNA had 63.3% lower standard deviation.
+
+**Learning:** TUNA can be applied to different application types, including databases and web servers.
+
+#### 4.5 Equal-cost comparisons — Figures 16 and 17
+
+**Figure 16: Equal sample budget**
+- Traditional sampling was allowed to use the same number of samples as TUNA.
+- TUNA achieved 9.2% higher average performance and 87.8% lower standard deviation in this comparison.
+
+**Figure 17: Naive distributed sampling**
+- Naive distributed sampling evaluates configurations across all available nodes.
+- TUNA uses multi-fidelity sampling, initially spending less effort on configurations and allocating more resources to promising ones.
+- TUNA converged 2.47 times faster in the reported comparison.
+
+**Learning:** Efficient allocation of the measurement budget can help find good configurations faster.
+
+#### 4.6 Component analysis — Figures 18, 19 and 20
+
+**Figure 18: Different optimizer**
+- Researchers replaced the usual Random Forest-based optimizer with a Gaussian Process optimizer.
+- TUNA achieved 53.1% higher performance and 89.5% lower standard deviation than traditional sampling in the comparison.
+
+**Learning:** TUNA's benefits are not restricted to one optimizer.
+
+**Figure 19: Noise Adjuster**
+- Researchers compared TUNA with and without the Noise Adjuster over 100 tuning runs.
+- The Noise Adjuster helped TUNA converge 13.3% faster.
+- At the illustrated midpoint, relative error was 1.99% with the model versus 4.87% without it.
+
+**Learning:** The Noise Adjuster reduces the influence of platform noise on performance estimates.
+
+**Figure 20: Outlier Detector**
+- Researchers compared TUNA with a version without the Outlier Detector.
+- TUNA's average throughput was slightly lower: 2,572 TPS versus 2,810 TPS.
+- Standard deviation was 54.8 TPS with TUNA versus 550.8 TPS without the detector.
+- TUNA achieved approximately 10.1 times lower variability.
+
+**Learning:** The Outlier Detector helps avoid configurations that appear fast but have highly unstable performance.
+
+### 5. Overall findings
+
+1. TUNA was evaluated across different workloads, regions, hardware platforms and applications.
+2. It generally improved performance, reduced variability, or achieved both.
+3. Its evaluation showed that high average performance alone is not sufficient.
+4. The Noise Adjuster helps reduce errors caused by platform noise.
+5. The Outlier Detector helps prevent unstable configurations from being selected.
+6. Multi-fidelity sampling helps allocate experimental effort efficiently.
+
+### 6. Connection to my TransitNexus benchmark
+
+My benchmark compares PyTorch CPU and ONNX Runtime CPU for TransitNexus inference.
+
+Lessons from TUNA:
+
+- Keep the input data and measurement conditions consistent between runtimes.
+- Perform warm-up iterations before collecting timed measurements.
+- Record every individual latency measurement.
+- Compare mean, median, P95, P99 and standard deviation.
+- Monitor hardware and software conditions that may introduce measurement noise.
+- Do not select a runtime based only on its lowest or average latency; consider consistency and tail latency too.
+
+**Research takeaway:** A reliable benchmark should measure both performance and variability. The fastest average result is not automatically the most reliable choice.
+
+---
