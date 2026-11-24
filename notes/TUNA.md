@@ -233,3 +233,49 @@ When comparing PyTorch and ONNX Runtime:
 **Remember:** TUNA has four key components — Multi-Fidelity Sampling, Unstable Configuration Detection, Sampling Noise Modeling, and Sample Aggregation.
 
 The best configuration should not only be fast but also reliable and consistent.
+
+## 5. Implementation — How TUNA Is Implemented
+
+### 5.1 Implementation Tools
+
+- TUNA is implemented using **Python**.
+- **SMAC** is used as the default optimizer.
+- **Nautilus** manages machine setup and cleanup during experiments.
+- TUNA is evaluated for the same amount of time as traditional single-machine tuning.
+
+### 5.2 Cluster Size
+
+- TUNA uses a fixed group of machines called a **cluster**.
+- More machines improve the chances of detecting unstable configurations but increase cost and delays.
+- The researchers selected **10 machines** as the maximum sampling budget.
+- This provides approximately **95% confidence** of detecting all unstable configurations in their experiments.
+- Previous samples are reused when a configuration is tested with a higher budget.
+- New samples must run on different machines from the previous tests.
+
+**Figure 9 Meaning:** As the number of machines increases, the probability of detecting unstable configurations also increases. At 10 machines, it reaches approximately 95%.
+
+### 5.3 Example Pipeline
+
+Suppose TUNA tests one configuration:
+
+1. Worker 1 gives **500 TPS**.
+2. TUNA schedules two additional tests on different workers.
+3. Worker 2 gives **450 TPS**.
+4. Worker 3 gives **530 TPS**.
+5. Outlier Detector calculates a Relative Range of **16.2%**. Since it is below 30%, the configuration is considered stable.
+6. Noise Adjuster corrects the values to **460, 500 and 520 TPS**.
+7. Aggregation Policy selects the minimum value: **460 TPS**.
+8. The optimizer receives 460 TPS.
+
+**TPS = Transactions Per Second.**
+
+**Note:** During the first iteration, the Noise Adjuster is skipped because it does not yet have training data.
+
+### Key Points to Remember
+
+- **SMAC:** Default optimizer.
+- **Nautilus:** Manages machine setup and cleanup.
+- **10 machines:** Maximum sampling budget.
+- **95% confidence:** Chance of detecting all unstable configurations in the researchers' experiments.
+- **30%:** Unstable configuration detection threshold.
+- **Minimum aggregation:** Sends the lowest adjusted performance value to the optimizer.
