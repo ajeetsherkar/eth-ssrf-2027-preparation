@@ -447,3 +447,101 @@ Lessons from TUNA:
 **Research takeaway:** A reliable benchmark should measure both performance and variability. The fastest average result is not automatically the most reliable choice.
 
 ---
+
+---
+
+## Section 7: Future Work
+
+The researchers identified four areas for improving TUNA.
+
+### 1. Add guardrails to the Noise Adjuster
+
+- Currently, the Noise Adjuster can modify performance scores without a predefined limit.
+- Unusual data patterns could cause excessive or unpredictable adjustments.
+- Future work could introduce guardrails to limit how much the model changes a score.
+- Designing these limits requires knowledge of the system's variability.
+
+**Key point:** Prevent the Noise Adjuster from making excessive or unreliable score adjustments.
+
+### 2. Improve the Outlier Detector
+
+- Currently, the Outlier Detector applies a penalty when variability crosses a threshold.
+- An alternative is to apply a penalty based on the relative range of observed performance.
+- This approach requires an additional penalty hyperparameter, which the researchers wanted to avoid.
+
+**Key point:** A future detector could consider the degree of performance variation instead of only checking whether a threshold is crossed.
+
+### 3. Learn from previous tuning runs
+
+- The current Noise Adjuster uses data collected only during the current tuning run.
+- Researchers suggest transferring data from previous runs to warm-start the model.
+- This could help the model become effective sooner.
+- Challenges include differences in machines and workloads between previous and current runs.
+
+**Key point:** Reusing knowledge from earlier experiments could improve learning speed, but transferring that knowledge reliably is difficult.
+
+### 4. Support burstable and serverless nodes
+
+- TUNA does not currently address burstable or serverless nodes.
+- Burstable VMs have performance credits; when credits are depleted, performance may decrease.
+- It is difficult to distinguish configuration instability from performance-credit depletion without platform introspection.
+- A suitable configuration should perform well both when credits are available and when they are depleted.
+
+**Key point:** TUNA needs better ways to distinguish configuration problems from platform resource limitations.
+
+### Main limitations and research gaps
+
+1. **Unbounded Noise Adjustments:** The Noise Adjuster has no explicit guardrails, so unusual data patterns could cause unpredictable score adjustments.
+2. **Limited Platform Support:** Burstable and serverless environments are not addressed because credit depletion can be difficult to distinguish from configuration instability.
+3. **No Cross-Run Learning:** The Noise Adjuster currently uses only current-run data; learning from previous runs remains future work.
+4. **Threshold-Based Outlier Penalty:** The current detector uses a threshold-based penalty; a relative-range-based alternative remains unexplored.
+
+---
+
+## Section 8: Conclusion
+
+### 1. Problems identified by the paper
+
+The researchers identified two major problems in cloud system autotuning:
+
+- Ignoring performance variability can make convergence to a good configuration slower and more expensive.
+- Configurations that appear good during tuning may become unstable after deployment.
+
+### 2. TUNA's three main mechanisms
+
+1. **Multi-fidelity sampling:** Allocates testing effort efficiently to find good configurations.
+2. **Outlier Detector:** Identifies and penalizes configurations with unstable performance.
+3. **Noise Adjuster:** Uses component-level metrics to reduce the influence of performance noise during sampling.
+
+### 3. Evaluation scope
+
+The researchers evaluated TUNA across:
+
+- 6 workloads.
+- 3 systems.
+- 2 deployment regions.
+- 2 hardware setups.
+
+### 4. Final research finding
+
+TUNA reduced performance variability and improved the performance of tuned systems across the evaluated environments.
+
+**Overall takeaway:** Selecting a configuration should involve both performance and stability. The highest average performance does not automatically mean the configuration is reliable after deployment.
+
+---
+
+## Connection to TransitNexus — Research Limitations and Scope
+
+My benchmark compares PyTorch CPU and ONNX Runtime CPU using the same TransitNexus model and controlled input data.
+
+Lessons from TUNA:
+
+1. Record performance variability, not just average latency.
+2. Keep warm-up, input data and measurement conditions consistent.
+3. Report mean, median, P95, P99 and standard deviation.
+4. Record the hardware and software environment.
+5. Clearly state the tested hardware and runtime conditions.
+6. Do not claim that CPU benchmark results automatically generalize to GPUs, other hardware or cloud environments.
+7. Preserve unusual measurements and document failed or invalid runs.
+
+**Research takeaway:** A good benchmark should report not only which runtime is faster, but also how consistent and reliable its performance is under the tested conditions.
