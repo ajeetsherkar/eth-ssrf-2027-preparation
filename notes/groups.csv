@@ -1,0 +1,9 @@
+project title,group,topic,what skills it needs,fit with my work (1-5),questions
+Systems for Machine Learning,Shivaram Venkataraman,"ML systems; cloud computing; large-scale data analytics","Python; machine learning; distributed systems; benchmarking",5,"How are ML workloads optimized and evaluated at scale?"
+Efficient and Secure Datacenter Systems,Torsten Hoefler,"Datacenter architecture; networking; large-scale ML; HPC","Python; systems; performance analysis; parallel computing",5,"How do you measure and improve ML system performance?"
+Cloud and Storage Systems,Ana Klimovic,"Cloud computing; operating systems; distributed systems; storage","Python; operating systems; systems benchmarking",5,"How do storage and infrastructure choices affect ML workloads?"
+Database and Distributed Systems,Gustavo Alonso,"Databases; distributed systems; multicore; enterprise computing","Python; SQL; databases; distributed systems",4,"How can data-intensive systems improve reliability and performance?"
+Data Management for AI,Yannis Chronis,"Databases; data management for AI; hardware-software codesign","Python; databases; machine learning; systems concepts",5,"What are the main data-management challenges in AI systems?"
+Machine Learning and Probabilistic Inference,Andreas Krause,"Machine learning; reinforcement learning; probabilistic inference","Python; statistics; machine learning; optimization",4,"How is uncertainty handled in practical ML systems?"
+Reliable Machine Learning,Fanny Yang,"ML theory and reliability; statistics; optimization","Python; probability; statistics; machine learning",5,"How is reliability measured and improved in ML models?"
+Machine Learning and Human-AI Dynamics,Celestine Mendler-Dünner,"Machine learning; performative prediction; human-AI dynamics","Python; machine learning; statistics; evaluation",3,"How can changing real-world conditions affect model predictions?"
