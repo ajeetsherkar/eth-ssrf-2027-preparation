@@ -91,3 +91,83 @@ An autotuner should not only find a good configuration but should also find it e
 - We will repeat measurements to understand performance variability.
 - We will record latency statistics instead of relying on a single execution.
 - We will investigate unusual measurements rather than immediately assuming that a runtime is slower.
+
+## 3. Motivation — Impact of Noise on System Tuning
+
+### 3.1 Impact of Noise on Tuner Convergence
+
+- The researchers tested an autotuner with 0%, 5%, and 10% noise.
+- With 0% noise, the tuner reached the same noise-free performance in about 40 iterations.
+- With 5% noise, it needed about 100 iterations.
+- With 10% noise, convergence became even slower.
+- The time-to-optimal performance was 2.5x slower with 5% noise and 4.35x slower with 10% noise compared with no noise.
+
+**Key point:** More noise makes an autotuner take more experiments and time to find a good configuration.
+
+### 3.2 Quantifying Cloud Noise
+
+The researchers studied cloud performance for 480 days using:
+- 40 microbenchmarks.
+- 13 end-to-end application benchmarks.
+- 92 performance metrics.
+- More than 43,000 short-lived VMs and over 7 million data points.
+
+**Main findings:**
+- CPU and disk performance showed relatively low variability.
+- Memory, operating system and cache showed higher variability.
+- Their reported CoV values were:
+  - Memory: 4.92%
+  - OS: 9.82%
+  - Cache: 14.39%
+- Shared resources and interference can affect performance measurements.
+
+**Key point:** Different system resources experience different levels of performance variability.
+
+### 3.3 Burstable vs Non-burstable VMs
+
+- **Burstable VMs:** Use accumulated credits to provide extra performance. When credits run out, performance can drop significantly.
+- **Non-burstable VMs:** Do not depend on this burst-credit mechanism.
+
+The researchers observed that burstable VMs could experience more than 50% performance degradation when disk credits were depleted.
+
+Therefore, they used non-burstable VMs for the remaining experiments.
+
+**Key point:** Burst-credit depletion can make performance measurements misleading.
+
+### 3.4 Unstable Configurations
+
+An unstable configuration performs well on some machines but poorly on others.
+
+The researchers:
+- Tested 30 tuning runs across 30 identically configured VMs.
+- Found that 13 out of 30 transferred configurations were unstable.
+- Observed performance degradation of more than 70% in some cases.
+- Found CoV values as high as 36.3% for unstable configurations.
+
+**Key point:** A configuration that performs well during tuning may not perform reliably on another machine.
+
+### 3.5 Why Do Unstable Configurations Occur?
+
+- Small performance differences between machines can affect system decisions.
+- In PostgreSQL, these differences sometimes caused the query planner to select a much slower execution plan.
+- A configuration could therefore appear fast on one machine and slow on another.
+
+**Key point:** Small environmental differences can sometimes cause large performance changes.
+
+### 3.6 Main Takeaways from Motivation
+
+1. Increased noise slows down autotuner convergence.
+2. Cloud resources experience different levels of performance variability.
+3. Burstable VM credits can cause sudden performance degradation.
+4. Unstable configurations may perform poorly when transferred to other machines.
+5. Tuning systems must identify unstable configurations and use representative measurements.
+
+### 3.7 Connection to TransitNexus
+
+- Compare PyTorch and ONNX Runtime using repeated benchmark runs.
+- Keep the model, input video and machine environment consistent.
+- Record mean, standard deviation, p50, p95 and p99 latency.
+- Investigate unusually high or low measurements.
+- Do not select a runtime based on one unusually fast result.
+
+**Remember:** The best configuration is not just the one that performs fastest once; it should also perform consistently.
