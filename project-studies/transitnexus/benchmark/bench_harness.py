@@ -159,8 +159,8 @@ def save(latencies_ms, output_dir, metadata=None):
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    csv_path = output_path / f"latency_{timestamp}.csv"
-    json_path = output_path / f"metadata_{timestamp}.json"
+    csv_path = output_path / f"{timestamp}_latency.csv"
+    json_path = output_path / f"{timestamp}_meta.json"
 
     # Save every individual measurement.
     with csv_path.open("w", newline="", encoding="utf-8") as f:
@@ -287,7 +287,7 @@ def main():
 
     paths = save(
         latencies,
-        "project-studies/transitnexus/benchmark/results/demo",
+        "project-studies/transitnexus/benchmark/results",
         metadata
     )
 
