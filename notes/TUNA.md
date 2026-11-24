@@ -171,3 +171,65 @@ The researchers:
 - Do not select a runtime based on one unusually fast result.
 
 **Remember:** The best configuration is not just the one that performs fastest once; it should also perform consistently.
+
+---
+
+## 4. Design — How TUNA Improves Autotuning
+
+### Main Idea
+TUNA improves autotuning by reducing measurement noise and identifying unstable configurations. It introduces four main components without changing the underlying optimizer or the system being tuned.
+
+### 4.1 Multi-Fidelity Sampling
+- Initially test a configuration on one machine.
+- If it performs well, promote it and test it on more machines.
+- If it performs poorly, discard it early.
+- Uses **Successive Halving** to allocate testing resources.
+
+**Meaning:** Spend more testing effort on promising configurations and save time on poor ones.
+
+### 4.2 Unstable Configuration Detection
+- Checks performance variation across multiple machines.
+- Uses **Relative Range** to measure variation:
+
+  Relative Range = (Maximum - Minimum) / Mean
+
+- TUNA uses a 30% threshold to identify unstable configurations.
+- Unstable configurations receive a penalty to discourage the optimizer from selecting them again.
+
+**Meaning:** Identify and avoid configurations with unpredictable performance.
+
+### 4.3 Sampling Noise Modeling
+- System noise can affect application performance measurements.
+- TUNA collects system metrics, such as CPU and memory usage, using psutil.
+- It uses a **Random Forest Regressor** to predict noise-free performance.
+- The model is trained using data collected during the current tuning run.
+- Unstable configurations bypass this noise-adjustment model.
+
+**Meaning:** Use system information and machine learning to reduce the effect of noisy measurements.
+
+### 4.4 Sample Aggregation
+- TUNA must provide one final performance value to the optimizer.
+- It uses the **minimum** as its aggregation policy.
+- This helps penalize configurations that experience poor performance or outliers.
+
+**Meaning:** Consider the worst observed performance instead of relying only on the average.
+
+### Figure 7 — TUNA Workflow
+1. Optimizer suggests a configuration.
+2. Multi-Fidelity Scheduler distributes testing across workers.
+3. Workers return raw performance measurements.
+4. Outlier Detector identifies unstable configurations.
+5. Noise Adjuster corrects noisy measurements.
+6. Aggregation Policy produces one final performance value.
+7. Optimizer is updated with the result.
+
+### Connection to TransitNexus
+When comparing PyTorch and ONNX Runtime:
+- Repeat measurements under controlled conditions.
+- Check latency variation across repeated runs.
+- Identify unusual measurements.
+- Compare consistency as well as average performance.
+
+**Remember:** TUNA has four key components — Multi-Fidelity Sampling, Unstable Configuration Detection, Sampling Noise Modeling, and Sample Aggregation.
+
+The best configuration should not only be fast but also reliable and consistent.
