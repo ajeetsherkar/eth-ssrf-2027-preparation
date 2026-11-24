@@ -112,6 +112,31 @@ as a separate metric and do not mix it with end-to-end latency.
 - Use IoU >= 0.50 for bounding-box matching.
 - Preserve raw measurements for every run.
 
+
+### Noise Handling
+
+The following practices are borrowed from the TUNA paper and adapted
+for the TransitNexus PyTorch vs ONNX Runtime benchmark.
+
+1. **Repeated sampling:** Run each headline configuration in 3
+   separate process runs to check whether results are reproducible.
+
+2. **Variability detection:** Calculate mean latency, standard
+   deviation, and coefficient of variation (CoV) to identify
+   inconsistent performance.
+
+3. **Outlier handling:** Record unusual latency spikes and
+   investigate their possible causes. Do not silently remove
+   unusual measurements.
+
+4. **System noise monitoring:** Record CPU and memory usage
+   alongside latency measurements to help identify system-level
+   interference.
+
+5. **Reliable reporting:** Report mean, standard deviation,
+   p50, p95, and p99 latency instead of reporting only the
+   fastest measurement.
+
 ## 5. Experiment Matrix
 
 Unless explicitly stated otherwise, E4-E7 use ONNX Runtime CPU,
