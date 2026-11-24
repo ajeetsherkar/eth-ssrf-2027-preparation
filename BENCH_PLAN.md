@@ -104,7 +104,7 @@ as a separate metric and do not mix it with end-to-end latency.
 
 - Perform 20 warm-up iterations before timed measurements.
 - Collect at least 200 timed iterations per configuration.
-- Report mean, standard deviation, p50, p95 and p99.
+- Report mean, standard deviation, p50, p95, p99 and bootstrap confidence intervals.
 - Calculate throughput as total timed frames divided by total
   measured processing time.
 - Measure model loading time separately.
@@ -114,6 +114,8 @@ as a separate metric and do not mix it with end-to-end latency.
 
 
 ### Noise Handling
+
+#### What I will borrow from TUNA
 
 The following practices are borrowed from the TUNA paper and adapted
 for the TransitNexus PyTorch vs ONNX Runtime benchmark.
