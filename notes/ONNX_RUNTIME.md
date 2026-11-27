@@ -218,3 +218,38 @@ Graph optimization also reduced the serialized graph node count from 233 to 175 
 ### Conclusion
 
 ORT_ENABLE_ALL showed a promising preliminary latency improvement on this Mac CPU benchmark. Additional repeated measurements under controlled conditions are needed before making a strong performance claim.
+
+---
+
+# S4: Math and Statistics — Comparing Two Distributions
+
+**Hardware:** Apple MacBook Air, Apple M2, 8-core CPU, ARM architecture.
+**Operating System:** macOS 26.5.2.
+**Execution Provider:** ONNX Runtime CPUExecutionProvider.
+**Benchmark:** Model-only FP32 inference.
+**Sample size:** 200 measurements per runtime per run.
+**Bootstrap:** 5,000 independent resamples, 95% confidence interval, seed=0.
+
+## Run 1
+
+- PyTorch median: 45.314 ms
+- ONNX Runtime median: 35.187 ms
+- Median difference: 10.127 ms
+- Speed-up: 1.288x
+- 95% bootstrap CI: [1.277, 1.299]
+
+On an Apple M2 MacBook Air (8-core CPU), ONNX Runtime was 1.288x faster than PyTorch at p50 (95% CI [1.277, 1.299]), n = 200.
+
+## Run 2
+
+- PyTorch median: 44.921 ms
+- ONNX Runtime median: 34.935 ms
+- Median difference: 9.986 ms
+- Speed-up: 1.286x
+- 95% bootstrap CI: [1.272, 1.294]
+
+On an Apple M2 MacBook Air (8-core CPU), ONNX Runtime was 1.286x faster than PyTorch at p50 (95% CI [1.272, 1.294]), n = 200.
+
+## Interpretation
+
+Both independent runs show consistent ONNX Runtime speed-up over PyTorch. Both 95% bootstrap confidence intervals remain entirely above 1.0.

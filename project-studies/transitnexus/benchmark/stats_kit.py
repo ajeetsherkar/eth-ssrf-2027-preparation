@@ -31,3 +31,18 @@ def bootstrap_ci(x, stat=np.median, n=5000, alpha=0.05, seed=0):
         boots,
         [100 * alpha / 2, 100 * (1 - alpha / 2)]
     )
+
+
+def speedup_ci(base, new, stat=np.median, n=5000, alpha=0.05, seed=0):
+    """speed-up = stat(base) / stat(new), bootstrap interval,
+    samples resampled independently."""
+    rng = np.random.default_rng(seed)
+    base, new = np.asarray(base), np.asarray(new)
+    r = [
+        stat(rng.choice(base, len(base))) /
+        stat(rng.choice(new, len(new)))
+        for _ in range(n)
+    ]
+    return stat(base) / stat(new), np.percentile(
+        r, [100 * alpha / 2, 100 * (1 - alpha / 2)]
+    )
