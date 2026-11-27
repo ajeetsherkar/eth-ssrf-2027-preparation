@@ -1,10 +1,67 @@
 # TransitNexus — Research Case Study
 
+One-sentence description: An AI-powered road hazard detection system developed as a Smart India Hackathon project.
+
 ## Overview
 
-TransitNexus is an AI-powered road hazard detection system developed as a Smart India Hackathon project.
+TransitNexus investigates an AI-powered road hazard detection pipeline, with this case study focusing on inference performance and reproducible benchmarking.
 
-This case study documents the technical investigation of its machine learning inference pipeline as part of ETH SSRF 2027 research preparation.
+TODO:
+- [ ] Explain the problem, intended users, and system functionality.
+- [ ] Summarize the scope of this research case study.
+
+## Architecture
+
+TODO:
+- [ ] Add an architecture diagram.
+- [ ] Explain the major system components in approximately five lines each.
+- [ ] Show the data flow from input frame to detection output.
+
+## Methodology
+
+TODO:
+- [ ] Document the model and inference frameworks.
+- [ ] Describe the datasets and input data.
+- [ ] Document preprocessing and postprocessing rules.
+- [ ] Explain the evaluation and benchmarking protocol.
+
+## Experiments
+
+TODO:
+- [ ] Describe each experiment, configuration, and measurement procedure.
+- [ ] Record hardware and software configurations.
+- [ ] Link experiment scripts and detailed evaluation reports.
+
+## Results
+
+TODO:
+- [ ] Add a results table with measured values and hardware details.
+- [ ] Add relevant performance figures.
+- [ ] Report accuracy and latency findings where available.
+
+## Limitations
+
+TODO:
+- [ ] Document hardware and environment constraints.
+- [ ] Identify measurement limitations and sources of variability.
+- [ ] Distinguish preliminary findings from established conclusions.
+
+## How to reproduce
+
+TODO:
+- [ ] Specify the required Python version and dependencies.
+- [ ] Provide exact environment setup commands.
+- [ ] Provide exact commands to reproduce each experiment.
+- [ ] Document expected outputs and result locations.
+
+## Performance study
+
+The full TransitNexus inference performance study will be published on Day 13.
+
+TODO:
+- [ ] Add the completed benchmark report when available.
+
+**Report:** [TransitNexus Benchmark Report v1](../../report/TransitNexus_benchmark_v1.pdf)
 
 ## Research Objective
 
